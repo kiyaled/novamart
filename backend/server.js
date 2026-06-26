@@ -26,11 +26,16 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Test Route
 app.get("/", (req, res) => {
-  res.send("NovaMart API Running");
+  res.send("NovaMart API Running ✅");
 });
 
-const PORT = process.env.PORT || 5000;
+// ✅ This line is required for Vercel
+module.exports = app;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Only listen on port when running locally (not on Vercel)
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+}
