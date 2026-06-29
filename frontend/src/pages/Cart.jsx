@@ -251,7 +251,7 @@ function Cart() {
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setSubmitting(true);
     try {
-      await axios.post("http://localhost:5000/api/orders", {
+      await axios.post("https://novamart-backend.vercel.app/api/orders", {
         customer: {
           name: form.name.trim(),
           phone: form.phone.trim(),

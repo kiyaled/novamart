@@ -32,7 +32,7 @@ function Admin() {
   const fetchOrders = async () => {
     setOrdersLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/orders");
+      const res = await axios.get("https://novamart-backend.vercel.app/api/orders");
       setOrders(res.data);
     } catch (err) {
       console.error(err);
@@ -43,7 +43,7 @@ function Admin() {
 
   const updateStatus = async (id, status) => {
     try {
-      await axios.patch(`http://localhost:5000/api/orders/${id}/status`, { status });
+      await axios.patch(`https://novamart-backend.vercel.app/api/orders/${id}/status`, { status });
       setOrders((prev) =>
         prev.map((o) => (o._id === id ? { ...o, status } : o))
       );
@@ -59,7 +59,7 @@ function Admin() {
     }
     setSaving(true);
     try {
-      await axios.post("http://localhost:5000/api/products", {
+      await axios.post("https://novamart-backend.vercel.app/api/products", {
         ...form,
         price: Number(form.price),
         stock: Number(form.stock) || 0,

@@ -43,7 +43,7 @@ function Home() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/products")
+      .get("https://novamart-backend.vercel.app/api/products")
       .then((res) => setProducts(res.data))
       .catch((err) => console.log(err));
   }, []);
