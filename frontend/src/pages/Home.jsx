@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 
@@ -21,6 +21,8 @@ const SUB_TAGS = {
   Other: [],
 };
 
+const SUPERMARKET_BG = "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=70";
+
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "Good Morning";
@@ -32,7 +34,11 @@ function isOutOfStock(stock) {
   return stock !== undefined && stock !== null && Number(stock) === 0;
 }
 
-// ── Detect mobile ──
+function salePrice(price, discount) {
+  if (!discount || discount <= 0) return price;
+  return Math.round(price - (price * discount) / 100);
+}
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
   useEffect(() => {
@@ -46,17 +52,29 @@ function useIsMobile() {
 function Home() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeSubTag, setActiveSubTag] = useState(null);
   const [quantities, setQuantities] = useState({});
   const [addedId, setAddedId] = useState(null);
   const isMobile = useIsMobile();
+  const searchBoxRef = useRef(null);
 
   useEffect(() => {
     axios
       .get("https://novamart-backend.vercel.app/api/products")
       .then((res) => setProducts(res.data))
       .catch((err) => console.log(err));
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const handleCategoryChange = (cat) => {
@@ -82,13 +100,14 @@ function Home() {
       const raw = localStorage.getItem("cart");
       let cart = raw ? JSON.parse(raw) : [];
       const existingIndex = cart.findIndex((item) => item._id === product._id);
+      const priceToUse = salePrice(product.price, product.discount);
       if (existingIndex >= 0) {
         cart[existingIndex] = {
           ...cart[existingIndex],
           qty: (Number(cart[existingIndex].qty) || 1) + qty,
         };
       } else {
-        cart.push({ ...product, qty });
+        cart.push({ ...product, price: priceToUse, qty });
       }
       localStorage.setItem("cart", JSON.stringify(cart));
       window.dispatchEvent(new Event("cartUpdated"));
@@ -99,6 +118,23 @@ function Home() {
     setAddedId(product._id);
     setTimeout(() => setAddedId(null), 1500);
   };
+
+  const promoProducts = useMemo(
+    () => products.filter((p) => p.discount && Number(p.discount) > 0),
+    [products]
+  );
+
+  const suggestions = useMemo(() => {
+    if (!search.trim()) return [];
+    const q = search.toLowerCase();
+    return products
+      .filter(
+        (p) =>
+          (p.name || "").toLowerCase().includes(q) ||
+          (p.category || "").toLowerCase().includes(q)
+      )
+      .slice(0, 6);
+  }, [search, products]);
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -119,112 +155,222 @@ function Home() {
 
   const subTags = SUB_TAGS[activeCategory] || [];
 
-  // ── Responsive values ──
-  const heropadding = isMobile ? "24px 16px 20px" : "40px 20px 36px";
-  const heroTitle = isMobile ? "26px" : "36px";
-  const gridCols = isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(250px, 1fr))";
-  const gridGap = isMobile ? "10px" : "20px";
-  const imgHeight = isMobile ? "120px" : "200px";
-  const cardPadding = isMobile ? "10px" : "15px";
-  const cardTitleSize = isMobile ? "13px" : "16px";
-  const cardDescSize = isMobile ? "11px" : "13px";
-  const priceSize = isMobile ? "13px" : "17px";
-  const btnPadding = isMobile ? "7px 6px" : "10px 15px";
-  const btnFontSize = isMobile ? "11px" : "14px";
-  const qtyBtnSize = isMobile ? "30px" : "40px";
-  const qtyHeight = isMobile ? "30px" : "38px";
-  const qtyFontSize = isMobile ? "16px" : "20px";
-  const outerPadding = isMobile ? "12px" : "24px 20px";
+  const heroPadding = isMobile ? "20px 14px 16px" : "40px 20px 36px";
+  const heroTitle = isMobile ? "22px" : "36px";
+  const gridCols = isMobile ? "repeat(3, 1fr)" : "repeat(auto-fill, minmax(220px, 1fr))";
+  const gridGap = isMobile ? "8px" : "18px";
+  const imgHeight = isMobile ? "85px" : "190px";
+  const cardPadding = isMobile ? "6px" : "14px";
+  const cardTitleSize = isMobile ? "11px" : "16px";
+  const priceSize = isMobile ? "11px" : "17px";
+  const btnPadding = isMobile ? "5px 4px" : "10px 15px";
+  const btnFontSize = isMobile ? "10px" : "14px";
+  const qtyBtnSize = isMobile ? "22px" : "40px";
+  const qtyHeight = isMobile ? "22px" : "38px";
+  const qtyFontSize = isMobile ? "13px" : "20px";
+  const outerPadding = isMobile ? "10px" : "24px 20px";
+
+  const ProductCard = ({ product, compact }) => {
+    const outOfStock = isOutOfStock(product.stock);
+    const qty = getQty(product._id);
+    const maxStock = (product.stock !== undefined && product.stock !== null) ? Number(product.stock) : 999;
+    const hasDiscount = product.discount && Number(product.discount) > 0;
+    const finalPrice = salePrice(product.price, product.discount);
+
+    return (
+      <div
+        style={{
+          border: "1px solid #d4edba",
+          borderRadius: isMobile ? "8px" : "12px",
+          overflow: "hidden",
+          textAlign: "center",
+          boxShadow: "0 2px 8px rgba(26,92,42,0.08)",
+          display: "flex",
+          flexDirection: "column",
+          background: "#fff",
+          width: compact ? (isMobile ? "118px" : "160px") : "auto",
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ position: "relative" }}>
+          <img
+            src={product.image || "https://placehold.co/300x200?text=No+Image"}
+            alt={product.name}
+            style={{ width: "100%", height: compact ? (isMobile ? "70px" : "100px") : imgHeight, objectFit: "cover", display: "block" }}
+            onError={(e) => { e.target.src = "https://placehold.co/300x200?text=No+Image"; }}
+          />
+          {hasDiscount && (
+            <span style={{ position: "absolute", top: "4px", right: "4px", background: "#dc2626", color: "#fff", fontSize: isMobile ? "9px" : "11px", fontWeight: "800", padding: "2px 6px", borderRadius: "6px" }}>
+              -{product.discount}%
+            </span>
+          )}
+          {!hasDiscount && product.stock <= 5 && product.stock > 0 && (
+            <span style={{ position: "absolute", top: "4px", left: "4px", background: "#fef3c7", color: "#92400e", fontSize: "9px", fontWeight: "600", padding: "2px 6px", borderRadius: "999px" }}>
+              {product.stock} left
+            </span>
+          )}
+          {outOfStock && (
+            <span style={{ position: "absolute", top: "4px", left: "4px", background: "#fee2e2", color: "#991b1b", fontSize: "9px", fontWeight: "600", padding: "2px 6px", borderRadius: "999px" }}>
+              Out of stock
+            </span>
+          )}
+        </div>
+
+        <div style={{ padding: compact ? "6px" : cardPadding, flex: 1, display: "flex", flexDirection: "column", gap: "3px" }}>
+          {!compact && product.category && (
+            <span style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: BRIGHT_GREEN }}>
+              {product.category}
+            </span>
+          )}
+          <h3 style={{ margin: 0, fontSize: compact ? (isMobile ? "10px" : "13px") : cardTitleSize, color: DARK_GREEN, lineHeight: 1.25, minHeight: isMobile ? "26px" : "auto", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+            {product.name}
+          </h3>
+
+          {!isMobile && !compact && (
+            <p style={{ margin: 0, color: "#777", fontSize: "12px", lineHeight: "1.4" }}>{product.description}</p>
+          )}
+
+          <div>
+            {hasDiscount && (
+              <p style={{ margin: 0, fontSize: isMobile ? "9px" : "12px", color: "#aaa", textDecoration: "line-through" }}>
+                ETB {Number(product.price).toLocaleString()}
+              </p>
+            )}
+            <strong style={{ color: hasDiscount ? "#dc2626" : DARK_GREEN, fontSize: compact ? (isMobile ? "10px" : "13px") : priceSize }}>
+              ETB {Number(finalPrice).toLocaleString()}
+            </strong>
+          </div>
+
+          {!outOfStock && (
+            <div style={{ display: "flex", alignItems: "center", margin: "2px 0 0", border: "1.5px solid #cde8ba", borderRadius: "6px", overflow: "hidden" }}>
+              <button
+                onClick={() => changeQty(product._id, -1, maxStock)}
+                style={{ width: qtyBtnSize, height: qtyHeight, border: "none", background: qty <= 1 ? "#f5f5f5" : "#f0f7ec", color: qty <= 1 ? "#bbb" : DARK_GREEN, fontSize: qtyFontSize, fontWeight: "700", cursor: qty <= 1 ? "not-allowed" : "pointer", lineHeight: 1, flexShrink: 0 }}
+              >−</button>
+              <span style={{ flex: 1, textAlign: "center", fontWeight: "700", fontSize: isMobile ? "11px" : "16px", color: DARK_GREEN, borderLeft: "1px solid #cde8ba", borderRight: "1px solid #cde8ba", height: qtyHeight, lineHeight: qtyHeight }}>
+                {qty}
+              </span>
+              <button
+                onClick={() => changeQty(product._id, +1, maxStock)}
+                style={{ width: qtyBtnSize, height: qtyHeight, border: "none", background: qty >= maxStock ? "#f5f5f5" : "#f0f7ec", color: qty >= maxStock ? "#bbb" : DARK_GREEN, fontSize: qtyFontSize, fontWeight: "700", cursor: qty >= maxStock ? "not-allowed" : "pointer", lineHeight: 1, flexShrink: 0 }}
+              >+</button>
+            </div>
+          )}
+
+          <button
+            onClick={() => addToCart(product)}
+            disabled={outOfStock}
+            style={{
+              marginTop: "4px",
+              padding: btnPadding,
+              border: "none",
+              borderRadius: "6px",
+              cursor: outOfStock ? "not-allowed" : "pointer",
+              background: addedId === product._id ? BRIGHT_GREEN : outOfStock ? "#ccc" : DARK_GREEN,
+              color: "#fff",
+              fontWeight: "600",
+              fontSize: btnFontSize,
+              transition: "background 0.2s",
+            }}
+          >
+            {outOfStock ? "Out" : addedId === product._id ? "✓ Added" : isMobile ? "🛒 Add" : "🛒 Add to Cart"}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
       <Navbar />
 
-      {/* ── Welcome hero ── */}
-      <div style={{
-        background: `linear-gradient(135deg, ${DARK_GREEN} 0%, #2d7a3a 60%, ${BRIGHT_GREEN} 100%)`,
-        color: "#fff",
-        padding: heropadding,
-        textAlign: "center",
-      }}>
-        <p style={{ margin: "0 0 6px", fontSize: "11px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: "#c8f0a8" }}>
-          🌿 {getGreeting()}, Welcome to
-        </p>
-        <h1 style={{ margin: "0 0 6px", fontSize: heroTitle, fontWeight: "800", letterSpacing: "-0.5px" }}>
-          Nova Milk &amp; Mart
-        </h1>
-        <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#d4edba", fontStyle: "italic" }}>
-          Fresh Milk · Quality Products · Better Life
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "6px", flexWrap: "wrap" }}>
-          {["🥛 Fresh Milk", "🛒 Groceries", "⭐ Quality", "😊 Service"].map((item) => (
-            <span key={item} style={{
-              background: "rgba(255,255,255,0.15)",
-              border: "1px solid rgba(255,255,255,0.3)",
-              borderRadius: "999px",
-              padding: isMobile ? "4px 10px" : "5px 14px",
-              fontSize: isMobile ? "11px" : "12px",
-              fontWeight: "500",
-            }}>
-              {item}
-            </span>
-          ))}
+      <div style={{ position: "relative", padding: heroPadding, textAlign: "center", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${SUPERMARKET_BG})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(26,92,42,0.92) 0%, rgba(45,122,58,0.88) 60%, rgba(106,191,58,0.85) 100%)" }} />
+        <div style={{ position: "relative", color: "#fff" }}>
+          <p style={{ margin: "0 0 4px", fontSize: isMobile ? "10px" : "13px", fontWeight: "600", letterSpacing: "0.12em", textTransform: "uppercase", color: "#c8f0a8" }}>
+            🌿 {getGreeting()}, Welcome to
+          </p>
+          <h1 style={{ margin: "0 0 4px", fontSize: heroTitle, fontWeight: "800", letterSpacing: "-0.5px" }}>
+            Nova Milk &amp; Mart
+          </h1>
+          <p style={{ margin: "0 0 12px", fontSize: isMobile ? "11px" : "14px", color: "#d4edba", fontStyle: "italic" }}>
+            Fresh Milk · Quality Products · Better Life
+          </p>
+          <div style={{ display: "flex", justifyContent: "center", gap: "6px", flexWrap: "wrap" }}>
+            {["🥛 Fresh Milk", "🛒 Groceries", "⭐ Quality", "😊 Service"].map((item) => (
+              <span key={item} style={{ background: "rgba(255,255,255,0.18)", border: "1px solid rgba(255,255,255,0.35)", borderRadius: "999px", padding: isMobile ? "3px 8px" : "5px 14px", fontSize: isMobile ? "9px" : "12px", fontWeight: "500" }}>
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
       <div style={{ padding: outerPadding, maxWidth: "1200px", margin: "0 auto" }}>
 
-        {/* ── Search ── */}
-        <div style={{ position: "relative", marginBottom: "12px" }}>
+        <div ref={searchBoxRef} style={{ position: "relative", marginBottom: "12px" }}>
           <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "14px", pointerEvents: "none" }}>🔍</span>
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search products instantly..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: "100%",
-              padding: isMobile ? "10px 36px" : "12px 44px",
-              fontSize: isMobile ? "14px" : "15px",
-              border: "1.5px solid #cde8ba",
-              borderRadius: "12px",
-              outline: "none",
-              boxSizing: "border-box",
-              backgroundColor: "#fff",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = DARK_GREEN)}
-            onBlur={(e) => (e.target.style.borderColor = "#cde8ba")}
+            onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
+            onFocus={() => setShowSuggestions(true)}
+            style={{ width: "100%", padding: isMobile ? "10px 36px" : "12px 44px", fontSize: isMobile ? "14px" : "15px", border: "1.5px solid #cde8ba", borderRadius: "12px", outline: "none", boxSizing: "border-box", backgroundColor: "#fff" }}
           />
           {search && (
-            <button onClick={() => setSearch("")} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#888" }}>✕</button>
+            <button onClick={() => { setSearch(""); setShowSuggestions(false); }} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#888" }}>✕</button>
+          )}
+
+          {showSuggestions && suggestions.length > 0 && (
+            <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#fff", border: "1.5px solid #cde8ba", borderRadius: "12px", boxShadow: "0 8px 24px rgba(26,92,42,0.15)", zIndex: 50, overflow: "hidden" }}>
+              {suggestions.map((p) => (
+                <div
+                  key={p._id}
+                  onClick={() => { setSearch(p.name); setShowSuggestions(false); }}
+                  style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 12px", cursor: "pointer", borderBottom: "1px solid #f0f7ec" }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "#f0f7ec"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}
+                >
+                  <img src={p.image || "https://placehold.co/40x40?text=Item"} alt={p.name} style={{ width: "32px", height: "32px", objectFit: "cover", borderRadius: "6px" }} onError={(e) => { e.target.src = "https://placehold.co/40x40?text=Item"; }} />
+                  <div style={{ flex: 1, textAlign: "left" }}>
+                    <p style={{ margin: 0, fontSize: "13px", fontWeight: "600", color: DARK_GREEN }}>{p.name}</p>
+                    <p style={{ margin: 0, fontSize: "11px", color: "#888" }}>{p.category}</p>
+                  </div>
+                  <strong style={{ fontSize: "12px", color: DARK_GREEN }}>ETB {Number(salePrice(p.price, p.discount)).toLocaleString()}</strong>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* ── Category tabs ── */}
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px", overflowX: isMobile ? "auto" : "visible", paddingBottom: "4px" }}>
+        {promoProducts.length > 0 && (
+          <div style={{ marginBottom: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+              <span style={{ fontSize: isMobile ? "16px" : "20px" }}>🔥</span>
+              <h2 style={{ margin: 0, fontSize: isMobile ? "14px" : "18px", color: "#dc2626", fontWeight: "800" }}>
+                Today's Promotions
+              </h2>
+            </div>
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "6px" }}>
+              {promoProducts.map((p) => (
+                <ProductCard key={p._id} product={p} compact />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: "6px", flexWrap: "nowrap", marginBottom: "10px", overflowX: "auto", paddingBottom: "4px" }}>
           {CATEGORIES.map((cat) => (
             <button key={cat} onClick={() => handleCategoryChange(cat)}
-              style={{
-                padding: isMobile ? "5px 10px" : "7px 16px",
-                borderRadius: "999px",
-                border: "1.5px solid",
-                borderColor: activeCategory === cat ? DARK_GREEN : "#cde8ba",
-                background: activeCategory === cat ? DARK_GREEN : "#fff",
-                color: activeCategory === cat ? "#fff" : DARK_GREEN,
-                fontWeight: "500",
-                fontSize: isMobile ? "11px" : "13px",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                transition: "all 0.15s",
-                flexShrink: 0,
-              }}
+              style={{ padding: isMobile ? "5px 10px" : "7px 16px", borderRadius: "999px", border: "1.5px solid", borderColor: activeCategory === cat ? DARK_GREEN : "#cde8ba", background: activeCategory === cat ? DARK_GREEN : "#fff", color: activeCategory === cat ? "#fff" : DARK_GREEN, fontWeight: "500", fontSize: isMobile ? "11px" : "13px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s", flexShrink: 0 }}
             >
               {cat}
             </button>
           ))}
         </div>
 
-        {/* ── Sub-category tags ── */}
         {subTags.length > 0 && (
           <div style={{ background: "#f0f7ec", border: "1px solid #cde8ba", borderRadius: "12px", padding: "10px 12px", marginBottom: "12px" }}>
             <p style={{ margin: "0 0 6px", fontSize: "11px", fontWeight: "600", color: DARK_GREEN, textTransform: "uppercase", letterSpacing: "0.07em" }}>
@@ -233,18 +379,7 @@ function Home() {
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               {subTags.map((tag) => (
                 <button key={tag} onClick={() => setActiveSubTag(activeSubTag === tag ? null : tag)}
-                  style={{
-                    padding: isMobile ? "4px 10px" : "5px 14px",
-                    borderRadius: "999px",
-                    border: "1.5px solid",
-                    borderColor: activeSubTag === tag ? BRIGHT_GREEN : "#b8dda0",
-                    background: activeSubTag === tag ? BRIGHT_GREEN : "#fff",
-                    color: activeSubTag === tag ? "#fff" : DARK_GREEN,
-                    fontWeight: "500",
-                    fontSize: isMobile ? "11px" : "12px",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
+                  style={{ padding: isMobile ? "4px 10px" : "5px 14px", borderRadius: "999px", border: "1.5px solid", borderColor: activeSubTag === tag ? BRIGHT_GREEN : "#b8dda0", background: activeSubTag === tag ? BRIGHT_GREEN : "#fff", color: activeSubTag === tag ? "#fff" : DARK_GREEN, fontWeight: "500", fontSize: isMobile ? "11px" : "12px", cursor: "pointer", transition: "all 0.15s" }}
                 >
                   {tag}
                 </button>
@@ -253,127 +388,17 @@ function Home() {
           </div>
         )}
 
-        {/* ── Results count ── */}
-        <p style={{ fontSize: "12px", color: "#666", marginBottom: "12px" }}>
+        <p style={{ fontSize: "12px", color: "#666", marginBottom: "10px" }}>
           {filtered.length === 0 ? "No products found"
             : `${filtered.length} product${filtered.length !== 1 ? "s" : ""}${activeCategory !== "All" ? ` in ${activeCategory}` : ""}${activeSubTag ? ` › ${activeSubTag}` : ""}${search ? ` for "${search}"` : ""}`}
         </p>
 
-        {/* ── Product grid ── */}
         <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: gridGap }}>
-          {filtered.map((product) => {
-            const outOfStock = isOutOfStock(product.stock);
-            const qty = getQty(product._id);
-            const maxStock = (product.stock !== undefined && product.stock !== null) ? Number(product.stock) : 999;
-
-            return (
-              <div
-                key={product._id}
-                style={{
-                  border: "1px solid #d4edba",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  textAlign: "center",
-                  boxShadow: "0 2px 8px rgba(26,92,42,0.08)",
-                  display: "flex",
-                  flexDirection: "column",
-                  background: "#fff",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                }}
-              >
-                {/* Image */}
-                <div style={{ position: "relative" }}>
-                  <img
-                    src={product.image || "https://placehold.co/300x200?text=No+Image"}
-                    alt={product.name}
-                    style={{ width: "100%", height: imgHeight, objectFit: "cover", display: "block" }}
-                    onError={(e) => { e.target.src = "https://placehold.co/300x200?text=No+Image"; }}
-                  />
-                  {product.stock <= 5 && product.stock > 0 && (
-                    <span style={{ position: "absolute", top: "6px", left: "6px", background: "#fef3c7", color: "#92400e", fontSize: "10px", fontWeight: "600", padding: "2px 8px", borderRadius: "999px" }}>
-                      Only {product.stock} left
-                    </span>
-                  )}
-                  {outOfStock && (
-                    <span style={{ position: "absolute", top: "6px", left: "6px", background: "#fee2e2", color: "#991b1b", fontSize: "10px", fontWeight: "600", padding: "2px 8px", borderRadius: "999px" }}>
-                      Out of stock
-                    </span>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div style={{ padding: cardPadding, flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-                  {product.category && (
-                    <span style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.07em", color: BRIGHT_GREEN }}>
-                      {product.category}
-                    </span>
-                  )}
-                  <h3 style={{ margin: 0, fontSize: cardTitleSize, color: DARK_GREEN, lineHeight: 1.3 }}>{product.name}</h3>
-
-                  {/* Hide description on mobile to save space */}
-                  {!isMobile && (
-                    <p style={{ margin: 0, color: "#777", fontSize: cardDescSize, lineHeight: "1.5" }}>{product.description}</p>
-                  )}
-
-                  <p style={{ margin: 0 }}>
-                    <strong style={{ color: DARK_GREEN, fontSize: priceSize }}>ETB {Number(product.price).toLocaleString()}</strong>
-                  </p>
-
-                  {/* Quantity selector */}
-                  {!outOfStock && (
-                    <>
-                      <div style={{ display: "flex", alignItems: "center", margin: "4px 0 0", border: "1.5px solid #cde8ba", borderRadius: "8px", overflow: "hidden" }}>
-                        <button
-                          onClick={() => changeQty(product._id, -1, maxStock)}
-                          style={{ width: qtyBtnSize, height: qtyHeight, border: "none", background: qty <= 1 ? "#f5f5f5" : "#f0f7ec", color: qty <= 1 ? "#bbb" : DARK_GREEN, fontSize: qtyFontSize, fontWeight: "700", cursor: qty <= 1 ? "not-allowed" : "pointer", lineHeight: 1, flexShrink: 0 }}
-                        >−</button>
-                        <span style={{ flex: 1, textAlign: "center", fontWeight: "700", fontSize: isMobile ? "13px" : "16px", color: DARK_GREEN, borderLeft: "1px solid #cde8ba", borderRight: "1px solid #cde8ba", height: qtyHeight, lineHeight: qtyHeight }}>
-                          {qty}
-                        </span>
-                        <button
-                          onClick={() => changeQty(product._id, +1, maxStock)}
-                          style={{ width: qtyBtnSize, height: qtyHeight, border: "none", background: qty >= maxStock ? "#f5f5f5" : "#f0f7ec", color: qty >= maxStock ? "#bbb" : DARK_GREEN, fontSize: qtyFontSize, fontWeight: "700", cursor: qty >= maxStock ? "not-allowed" : "pointer", lineHeight: 1, flexShrink: 0 }}
-                        >+</button>
-                      </div>
-
-                      {qty > 1 && (
-                        <p style={{ margin: "2px 0 0", fontSize: "11px", color: BRIGHT_GREEN, fontWeight: "600" }}>
-                          ETB {(Number(product.price) * qty).toLocaleString()}
-                        </p>
-                      )}
-                    </>
-                  )}
-
-                  {/* Add to cart button */}
-                  <button
-                    onClick={() => addToCart(product)}
-                    disabled={outOfStock}
-                    style={{
-                      marginTop: "6px",
-                      padding: btnPadding,
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: outOfStock ? "not-allowed" : "pointer",
-                      background: addedId === product._id ? BRIGHT_GREEN : outOfStock ? "#ccc" : DARK_GREEN,
-                      color: "#fff",
-                      fontWeight: "600",
-                      fontSize: btnFontSize,
-                      transition: "background 0.2s",
-                    }}
-                  >
-                    {outOfStock
-                      ? "Out of stock"
-                      : addedId === product._id
-                      ? `✓ Added!`
-                      : `🛒 Add to Cart`}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {filtered.map((product) => (
+            <ProductCard key={product._id} product={product} compact={false} />
+          ))}
         </div>
 
-        {/* Empty state */}
         {filtered.length === 0 && products.length > 0 && (
           <div style={{ textAlign: "center", padding: "4rem 0", color: "#888" }}>
             <p style={{ fontSize: "32px", margin: "0 0 8px" }}>😕</p>
@@ -387,7 +412,6 @@ function Home() {
         )}
       </div>
 
-      {/* Footer */}
       <div style={{ background: DARK_GREEN, color: "#c8f0a8", textAlign: "center", padding: "16px", fontSize: "13px", marginTop: "40px" }}>
         🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.
       </div>

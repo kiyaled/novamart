@@ -21,6 +21,10 @@ const productSchema = new mongoose.Schema({
   },
   image: {
     type: String
+  },
+  discount: {
+    type: Number,
+    default: 0, // percentage, e.g. 20 means 20% off
   }
 }, {
   timestamps: true
