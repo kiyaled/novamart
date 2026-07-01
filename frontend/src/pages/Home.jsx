@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
+import "./Home.css";
 
 const API = "https://novamart-backend.vercel.app";
 const DARK_GREEN = "#1a5c2a";
