@@ -3,7 +3,7 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 
 const API = "https://novamart-backend.vercel.app";
-const CATS = ["All","Dairy","Bakery","Beverages","Snacks","Fruits & Vegetables","Meat","Frozen","Other"];
+const CATS = ["All","Dairy","Meat","food and groceries","jams and canned items","Beverages","Animal products","Fruits & Vegetables","Meat","Snacks","Cosmotics","Sanitation","Detergent","Others"];
 const SUBTAGS = {
   Dairy:["Fresh Milk","Cheese","Yogurt","Butter","Cream","Eggs"],
   Bakery:["Bread","Cake","Biscuits","Pastry","Rolls"],
@@ -11,7 +11,6 @@ const SUBTAGS = {
   Snacks:["Chips","Nuts","Chocolate","Candy","Popcorn"],
   "Fruits & Vegetables":["Fruits","Leafy Greens","Root Vegetables","Herbs","Peppers"],
   Meat:["Beef","Chicken","Fish","Lamb","Sausage"],
-  Frozen:["Frozen Meals","Ice Cream","Frozen Vegetables","Frozen Meat"],
   Other:[],
 };
 const BG = "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=1600&q=75";
