@@ -103,8 +103,13 @@
   .nm-pill { font-size: 12px; padding: 5px 14px; }
   .nm-body { padding: 24px 20px; }
   .nm-search-input { font-size: 15px; padding: 12px 44px; }
-  .nm-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
-  .nm-card-img { height: 190px; }
+  .nm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+   }
+  .nm-card-img { height: 90px; }
   .nm-card-body { padding: 14px; gap: 6px; }
   .nm-card-name { font-size: 15px; }
   .nm-card-cat { font-size: 11px; }
