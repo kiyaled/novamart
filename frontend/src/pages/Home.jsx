@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
+import { FaTelegramPlane } from "react-icons/fa";
 
 const API = "https://novamart-backend.vercel.app";
 const CATS = ["All","Dairy","Bakery","Beverages","Snacks","Fruits & Vegetables","Meat","Frozen","Other"];
@@ -95,8 +96,8 @@ export default function Home() {
           <div className="home-hero-overlay" />
           <div className="home-hero-content">
             <p className="home-hero-sub">🌿 {greeting()}, Welcome to</p>
-            <h1 className="home-hero-h1">Nova Milk &amp; Mart</h1>
-            <p className="home-hero-tag">Fresh Milk · Quality Products · Better Life</p>
+            <h1 className="home-hero-h1">Nova MiniMarket</h1>
+            <p className="home-hero-tag">የሚመጥንዎ አገልግሎት</p>
             <div className="home-hero-pills">
               {["🥛 Fresh Milk","🛒 Groceries","⭐ Quality","😊 Service"].map(t => (
                 <span key={t} className="home-pill">{t}</span>
@@ -224,7 +225,16 @@ export default function Home() {
           )}
         </div>
 
-        <div className="nm-footer">🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
+        <div className="nm-footer">
+          <div>🌿 Nova Minimarket &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
+          <a
+           href="https://t.me/Natinana111"
+           target="_blank"
+           rel="noopener noreferrer"
+           style={{ marginTop: "8px", display: "inline-block" }}
+          >
+           <FaTelegramPlane size={24} color="#229ED9" />
+          </a>
       </div>
     </>
   );
