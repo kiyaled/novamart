@@ -236,6 +236,7 @@ export default function Home() {
            <FaTelegramPlane size={24} color="#229ED9" />
           </a>
       </div>
+      </div>
     </>
   );
 }
