@@ -9,33 +9,25 @@ const STEP_FORM = "form";
 const STEP_SUCCESS = "success";
 
 const PAYMENTS = [
-  { bank: "TeleBirr", number: "+251 937 066 660", emoji: "📱", color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
-  { bank: "CBE", number: "1000599391251", emoji: "🏦", color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe" },
-  { bank: "Abyssinia Bank", number: "261230437", emoji: "🏛️", color: "#b45309", bg: "#fffbeb", border: "#fcd34d" },
-  { bank: "Dashen Bank", number: "5008886050021", emoji: "🏧", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4" },
+  { bank:"TeleBirr", number:"+251 937 066 660", emoji:"📱", color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe" },
+  { bank:"CBE", number:"1000599391251", emoji:"🏦", color:"#1d4ed8", bg:"#eff6ff", border:"#bfdbfe" },
+  { bank:"Abyssinia Bank", number:"261230437", emoji:"🏛️", color:"#b45309", bg:"#fffbeb", border:"#fcd34d" },
+  { bank:"Dashen Bank", number:"5008886050021", emoji:"🏧", color:"#0f766e", bg:"#f0fdfa", border:"#99f6e4" },
 ];
 
 function PayCard({ acc }) {
   const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(acc.number).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
-  };
+  const copy = () => { navigator.clipboard.writeText(acc.number).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
   return (
-    <div className="pay-card" style={{ background: acc.bg, border: `1.5px solid ${acc.border}` }}>
-      <div className="pay-card-icon" style={{ background: acc.color }}>
-        <span style={{ fontSize: 20 }}>{acc.emoji}</span>
-      </div>
+    <div className="pay-card" style={{ background:acc.bg, border:`1.5px solid ${acc.border}` }}>
+      <div className="pay-card-icon" style={{ background:acc.color }}><span style={{fontSize:20}}>{acc.emoji}</span></div>
       <div className="pay-card-info">
-        <div className="pay-card-bank" style={{ color: acc.color }}>{acc.bank}</div>
+        <div className="pay-card-bank" style={{color:acc.color}}>{acc.bank}</div>
         <div className="pay-card-num">{acc.number}</div>
-        <div className="pay-card-name">Nova Milk &amp; Mart</div>
+        <div className="pay-card-name">Natnael Dereje</div>
       </div>
-      <button
-        onClick={copy}
-        className="pay-copy-btn"
-        style={{ background: copied ? "#6abf3a" : "#fff", color: copied ? "#fff" : acc.color, borderColor: copied ? "#6abf3a" : acc.border }}
-      >
-        {copied ? "✓ Copied" : "📋 Copy"}
+      <button onClick={copy} className="pay-copy-btn" style={{background:copied?"#6abf3a":"#fff",color:copied?"#fff":acc.color,borderColor:copied?"#6abf3a":acc.border}}>
+        {copied?"✓ Copied":"📋 Copy"}
       </button>
     </div>
   );
@@ -43,69 +35,58 @@ function PayCard({ acc }) {
 
 function PaySection({ total }) {
   const [tgCopied, setTgCopied] = useState(false);
-  const [phoneCopied, setPhoneCopied] = useState(false);
-
-  const copyText = (text, setter) => {
-    navigator.clipboard.writeText(text).then(() => { setter(true); setTimeout(() => setter(false), 2000); });
-  };
+  const [phCopied, setPhCopied] = useState(false);
+  const copy = (text, setter) => { navigator.clipboard.writeText(text).then(() => { setter(true); setTimeout(() => setter(false), 2000); }); };
 
   return (
     <div className="pay-section">
       <div className="pay-title">💳 Pay Now</div>
-      <p className="pay-sub">
-        Please transfer <strong>ETB {total.toLocaleString()}</strong> to one of the accounts below, then we'll call to confirm your order.
-      </p>
+      <p className="pay-sub">Please transfer <strong>ETB {total.toLocaleString()}</strong> to one of the accounts below, then we'll call to confirm your order.</p>
 
       {PAYMENTS.map(a => <PayCard key={a.bank} acc={a} />)}
 
-      <div className="pay-note">
-        <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
-        <p>After sending, <strong>take a screenshot</strong> of your transfer. We'll verify when we call you to confirm delivery.</p>
+      {/* Telegram username below accounts */}
+      <div style={{textAlign:"center",padding:"8px 0",borderTop:"1px solid #e8f5e0",borderBottom:"1px solid #e8f5e0",margin:"10px 0"}}>
+        <p style={{fontSize:12,color:"#888",margin:"0 0 4px"}}>Telegram</p>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <span style={{fontSize:15,fontWeight:700,color:"#2AABEE",fontFamily:"monospace"}}>@Natinana111</span>
+          <button onClick={()=>copy("@Natinana111",setTgCopied)} style={{background:tgCopied?"#6abf3a":"#f0f7ec",color:tgCopied?"#fff":"#1a5c2a",border:"1.5px solid #cde8ba",borderRadius:6,fontSize:10,fontWeight:700,padding:"3px 8px",cursor:"pointer"}}>
+            {tgCopied?"✓":"📋"}
+          </button>
+        </div>
       </div>
 
-      {/* ── Contact / Help section ── */}
-      <div style={{ marginTop: 14, background: "#f0f7ec", border: "1.5px solid #cde8ba", borderRadius: 12, padding: "14px 14px" }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: "#1a5c2a", marginBottom: 10 }}>
-          💬 Need Help? Contact Us
-        </p>
+      <div className="pay-note">
+        <span style={{fontSize:18,flexShrink:0}}>⚠️</span>
+        <p>After sending, <strong>take a screenshot</strong> of your transfer. We'll verify when we call to confirm delivery.</p>
+      </div>
 
-        {/* Telegram */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, background: "#fff", border: "1.5px solid #e0e7ff", borderRadius: 10, padding: "10px 12px" }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: "#2AABEE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
-            ✈️
+      {/* Contact side by side */}
+      <div style={{marginTop:12}}>
+        <p style={{fontSize:12,fontWeight:700,color:"#1a5c2a",marginBottom:8}}>💬 Need Help? Contact Us</p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+
+          {/* Telegram */}
+          <div style={{background:"#fff",border:"1.5px solid #e0e7ff",borderRadius:10,padding:"10px 10px",textAlign:"center"}}>
+            <div style={{width:34,height:34,borderRadius:8,background:"#2AABEE",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,margin:"0 auto 6px"}}>✈️</div>
+            <div style={{fontSize:10,fontWeight:700,color:"#2AABEE",marginBottom:2}}>Telegram</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#1a1a1a",fontFamily:"monospace",marginBottom:6}}>@Natinana111</div>
+            <button onClick={()=>copy("@Natinana111",setTgCopied)} style={{background:tgCopied?"#6abf3a":"#f0f7ec",color:tgCopied?"#fff":"#2AABEE",border:"1.5px solid #bfdbfe",borderRadius:6,fontSize:10,fontWeight:700,padding:"4px 10px",cursor:"pointer",width:"100%"}}>
+              {tgCopied?"✓ Copied":"📋 Copy"}
+            </button>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#2AABEE" }}>Telegram</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", fontFamily: "monospace" }}>@NovaMartET</div>
+
+          {/* Phone */}
+          <div style={{background:"#fff",border:"1.5px solid #d4edba",borderRadius:10,padding:"10px 10px",textAlign:"center"}}>
+            <div style={{width:34,height:34,borderRadius:8,background:"#1a5c2a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,margin:"0 auto 6px"}}>📞</div>
+            <div style={{fontSize:10,fontWeight:700,color:"#1a5c2a",marginBottom:2}}>Phone</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#1a1a1a",fontFamily:"monospace",marginBottom:6}}>+251 937 066 660</div>
+            <button onClick={()=>copy("+251937066660",setPhCopied)} style={{background:phCopied?"#6abf3a":"#f0f7ec",color:phCopied?"#fff":"#1a5c2a",border:"1.5px solid #cde8ba",borderRadius:6,fontSize:10,fontWeight:700,padding:"4px 10px",cursor:"pointer",width:"100%"}}>
+              {phCopied?"✓ Copied":"📋 Copy"}
+            </button>
           </div>
-          <button
-            onClick={() => copyText("@Natinana111", setTgCopied)}
-            style={{ background: tgCopied ? "#6abf3a" : "#fff", color: tgCopied ? "#fff" : "#2AABEE", border: `1.5px solid ${tgCopied ? "#6abf3a" : "#bfdbfe"}`, borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "5px 10px", cursor: "pointer", flexShrink: 0 }}
-          >
-            {tgCopied ? "✓ Copied" : "📋 Copy"}
-          </button>
         </div>
-
-        {/* Phone */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff", border: "1.5px solid #d4edba", borderRadius: 10, padding: "10px 12px" }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: "#1a5c2a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
-            📞
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#1a5c2a" }}>Phone / TeleBirr</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", fontFamily: "monospace" }}>+251 937 066 660</div>
-          </div>
-          <button
-            onClick={() => copyText("+251937066660", setPhoneCopied)}
-            style={{ background: phoneCopied ? "#6abf3a" : "#fff", color: phoneCopied ? "#fff" : "#1a5c2a", border: `1.5px solid ${phoneCopied ? "#6abf3a" : "#cde8ba"}`, borderRadius: 7, fontSize: 11, fontWeight: 700, padding: "5px 10px", cursor: "pointer", flexShrink: 0 }}
-          >
-            {phoneCopied ? "✓ Copied" : "📋 Copy"}
-          </button>
-        </div>
-
-        <p style={{ fontSize: 11, color: "#888", marginTop: 8, textAlign: "center" }}>
-          We're available 7 days a week to help you 🌿
-        </p>
+        <p style={{fontSize:10,color:"#888",marginTop:6,textAlign:"center"}}>We're available 7 days a week 🌿</p>
       </div>
     </div>
   );
@@ -116,13 +97,13 @@ export default function Cart() {
   const [step, setStep] = useState(STEP_CART);
   const [submitting, setSubmitting] = useState(false);
   const [summary, setSummary] = useState(null);
-  const [form, setForm] = useState({ name: "", phone: "", block: "", houseNumber: "" });
+  const [form, setForm] = useState({ name:"", phone:"", block:"", houseNumber:"" });
   const [errors, setErrors] = useState({});
 
   const load = () => {
     try {
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      setItems(cart.map(i => ({ ...i, qty: Number(i.qty) > 0 ? Number(i.qty) : 1 })));
+      const cart = JSON.parse(localStorage.getItem("cart")||"[]");
+      setItems(cart.map(i => ({...i, qty:Number(i.qty)>0?Number(i.qty):1})));
     } catch { setItems([]); }
   };
 
@@ -133,78 +114,58 @@ export default function Cart() {
     return () => { window.removeEventListener("cartUpdated", load); document.removeEventListener("visibilitychange", load); };
   }, []);
 
-  const save = updated => {
-    setItems(updated);
-    localStorage.setItem("cart", JSON.stringify(updated));
-    window.dispatchEvent(new Event("cartUpdated"));
-  };
-
-  const changeQty = (id, d) => save(items.map(i => i._id===id ? {...i, qty:(i.qty||1)+d} : i).filter(i => i.qty > 0));
-  const remove = id => save(items.filter(i => i._id!==id));
+  const save = updated => { setItems(updated); localStorage.setItem("cart", JSON.stringify(updated)); window.dispatchEvent(new Event("cartUpdated")); };
+  const changeQty = (id,d) => save(items.map(i=>i._id===id?{...i,qty:(i.qty||1)+d}:i).filter(i=>i.qty>0));
+  const remove = id => save(items.filter(i=>i._id!==id));
   const clear = () => { setItems([]); localStorage.removeItem("cart"); window.dispatchEvent(new Event("cartUpdated")); };
 
-  const totalItems = items.reduce((s,i) => s+(i.qty||1), 0);
-  const totalPrice = items.reduce((s,i) => s+Number(i.price)*(i.qty||1), 0);
+  const totalItems = items.reduce((s,i)=>s+(i.qty||1),0);
+  const totalPrice = items.reduce((s,i)=>s+Number(i.price)*(i.qty||1),0);
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = "Full name is required";
-    if (!form.phone.trim()) e.phone = "Phone number is required";
-    else if (!/^[0-9+\s\-]{7,15}$/.test(form.phone.trim())) e.phone = "Enter a valid phone number";
-    if (!form.block.trim()) e.block = "Block is required";
+    if (!form.name.trim()) e.name="Full name is required";
+    if (!form.phone.trim()) e.phone="Phone number is required";
+    else if (!/^[0-9+\s\-]{7,15}$/.test(form.phone.trim())) e.phone="Enter a valid phone number";
+    if (!form.block.trim()) e.block="Block is required";
+    if (!form.houseNumber.trim()) e.houseNumber="House number is required";
     return e;
   };
 
   const handleSubmit = async () => {
     const e = validate();
-    if (Object.keys(e).length > 0) { setErrors(e); return; }
+    if (Object.keys(e).length>0) { setErrors(e); return; }
     setSubmitting(true);
     try {
-      await axios.post(`${API}/api/orders`, {
-        customer: { name:form.name.trim(), phone:form.phone.trim(), block:form.block.trim() },
-        items,
-        totalPrice,
-      });
-      setSummary({ ...form, totalPrice, totalItems });
+      await axios.post(`${API}/api/orders`, { customer:{name:form.name.trim(),phone:form.phone.trim(),block:form.block.trim(),houseNumber:form.houseNumber.trim()}, items, totalPrice });
+      setSummary({...form,totalPrice,totalItems});
       clear();
       setStep(STEP_SUCCESS);
     } catch { alert("Failed to place order. Please try again."); }
     finally { setSubmitting(false); }
   };
 
-  const field = (label, key, placeholder, type="text") => (
+  const field = (label,key,placeholder,type="text") => (
     <div className="admin-field">
       <label className="form-label">{label} <span style={{color:"#e53e3e"}}>*</span></label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={form[key]}
-        className={`form-input${errors[key]?" err":""}`}
-        onChange={e => { setForm(p=>({...p,[key]:e.target.value})); if (errors[key]) setErrors(p=>({...p,[key]:null})); }}
-      />
-      {errors[key] && <div className="form-error">⚠ {errors[key]}</div>}
+      <input type={type} placeholder={placeholder} value={form[key]} className={`form-input${errors[key]?" err":""}`}
+        onChange={e=>{setForm(p=>({...p,[key]:e.target.value}));if(errors[key])setErrors(p=>({...p,[key]:null}));}} />
+      {errors[key]&&<div className="form-error">⚠ {errors[key]}</div>}
     </div>
   );
 
-  // ── SUCCESS ──
-  if (step===STEP_SUCCESS && summary) return (
+  if (step===STEP_SUCCESS&&summary) return (
     <>
       <Navbar />
       <div style={{background:"#f0f7ec",minHeight:"80vh",padding:"20px 12px"}}>
         <div className="success-wrap">
           <div className="success-check">✓</div>
           <h1 className="success-title">Order Accepted! 🎉</h1>
-          <p className="success-sub">
-            Thank you, <strong>{summary.name}</strong>!<br/>
-            We'll call <strong>{summary.phone}</strong> to confirm delivery.
-          </p>
+          <p className="success-sub">Thank you, <strong>{summary.name}</strong>!<br/>We'll call <strong>{summary.phone}</strong> to confirm delivery.</p>
           <div className="success-info">
             <div className="success-info-title">📋 Delivery Info</div>
-            {[["👤 Name",summary.name],["📞 Phone",summary.phone],[`🏘️ Block`,`Block ${summary.block}`],].map(([l,v])=>(
-              <div key={l} className="success-info-row">
-                <span className="success-info-label">{l}</span>
-                <span className="success-info-val">{v}</span>
-              </div>
+            {[["👤 Name",summary.name],["📞 Phone",summary.phone],["🏘️ Block",`Block ${summary.block}`],["🏠 House",`House ${summary.houseNumber}`]].map(([l,v])=>(
+              <div key={l} className="success-info-row"><span className="success-info-label">{l}</span><span className="success-info-val">{v}</span></div>
             ))}
             <div className="success-total">
               <span className="success-total-label">💰 Total</span>
@@ -212,16 +173,13 @@ export default function Cart() {
             </div>
           </div>
           <PaySection total={summary.totalPrice} />
-          <Link to="/" onClick={()=>setStep(STEP_CART)} className="success-continue-btn" style={{display:"block",marginTop:20}}>
-            🛒 Continue Shopping
-          </Link>
+          <Link to="/" onClick={()=>setStep(STEP_CART)} className="success-continue-btn" style={{display:"block",marginTop:20}}>🛒 Continue Shopping</Link>
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
+      <div className="nm-footer">🌿 Nova Mini Market &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
     </>
   );
 
-  // ── FORM ──
   if (step===STEP_FORM) return (
     <>
       <Navbar />
@@ -243,6 +201,7 @@ export default function Cart() {
             {field("📞 Phone Number","phone","e.g. 0911 234 567","tel")}
             <div className="form-2col">
               <div>{field("🏘️ Block","block","e.g. B2")}</div>
+              <div>{field("🏠 House No.","houseNumber","e.g. 14")}</div>
             </div>
             <button className="form-submit-btn" onClick={handleSubmit} disabled={submitting}>
               {submitting?"⏳ Placing order...":"✅ Place Order"}
@@ -252,11 +211,10 @@ export default function Cart() {
           <PaySection total={totalPrice} />
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
+      <div className="nm-footer">🌿 Nova Mini Market &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
     </>
   );
 
-  // ── CART ──
   return (
     <>
       <Navbar />
@@ -266,7 +224,6 @@ export default function Cart() {
             <h1 className="cart-title">🛒 Cart {items.length>0&&<span style={{fontSize:14,fontWeight:400,color:"#888"}}>({totalItems})</span>}</h1>
             {items.length>0&&<button className="cart-clear-btn" onClick={clear}>🗑 Clear all</button>}
           </div>
-
           {items.length===0 ? (
             <div className="cart-empty">
               <div className="cart-empty-icon">🛒</div>
@@ -311,7 +268,7 @@ export default function Cart() {
           )}
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
+      <div className="nm-footer">🌿 Nova Mini Market &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
     </>
   );
 }

@@ -32,17 +32,22 @@ export default function Admin() {
   // Categories
   const [categories, setCategories] = useState([]);
   const [catsLoading, setCatsLoading] = useState(true);
-  const [catForm, setCatForm] = useState({ name: "", subTags: "" });
+  const [catName, setCatName] = useState("");
+  const [catSubTags, setCatSubTags] = useState("");
   const [editCatId, setEditCatId] = useState(null);
   const [savingCat, setSavingCat] = useState(false);
   const [deletingCatId, setDeletingCatId] = useState(null);
   const [expandedCat, setExpandedCat] = useState(null);
   const [newSubTag, setNewSubTag] = useState("");
+  const [addingSubTagId, setAddingSubTagId] = useState(null);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (tab === "orders") fetchOrders();
-    if (tab === "products") fetchProducts();
-    if (tab === "categories") fetchCategories();
   }, [tab]);
 
   const fetchProducts = async () => {
@@ -81,21 +86,30 @@ export default function Admin() {
       const payload = { ...form, price:Number(form.price), stock:Number(form.stock)||0, discount:Number(form.discount)||0 };
       if (editId) {
         const r = await axios.put(`${API}/api/products/${editId}`, payload);
-        setProducts(p => p.map(x => x._id===editId?r.data:x));
+        setProducts(p => p.map(x => x._id===editId ? r.data : x));
       } else {
         const r = await axios.post(`${API}/api/products`, payload);
-        setProducts(p => [r.data,...p]);
+        setProducts(p => [r.data, ...p]);
       }
-      setForm(EMPTY); setEditId(null); setSaved(true);
+      setForm(EMPTY);
+      setEditId(null);
+      setSaved(true);
       setTimeout(() => { setSaved(false); setTab("products"); }, 1500);
-    } catch { alert("Failed to save product."); }
+    } catch(e) {
+      console.error(e);
+      alert("Failed to save product. Check your connection.");
+    }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Delete "${name}"?`)) return;
     setDeletingId(id);
-    try { await axios.delete(`${API}/api/products/${id}`); setProducts(p => p.filter(x => x._id!==id)); if (editId===id) { setEditId(null); setForm(EMPTY); } }
+    try {
+      await axios.delete(`${API}/api/products/${id}`);
+      setProducts(p => p.filter(x => x._id!==id));
+      if (editId===id) { setEditId(null); setForm(EMPTY); }
+    }
     catch { alert("Failed to delete."); }
     finally { setDeletingId(null); }
   };
@@ -108,55 +122,67 @@ export default function Admin() {
   // ── Category handlers ──
   const startEditCat = cat => {
     setEditCatId(cat._id);
-    setCatForm({ name: cat.name, subTags: cat.subTags.join(", ") });
-    setExpandedCat(null);
+    setCatName(cat.name);
+    setCatSubTags(cat.subTags.join(", "));
+    window.scrollTo({top:0,behavior:"smooth"});
   };
 
   const cancelEditCat = () => {
     setEditCatId(null);
-    setCatForm({ name: "", subTags: "" });
+    setCatName("");
+    setCatSubTags("");
   };
 
   const saveCat = async () => {
-    if (!catForm.name.trim()) { alert("Category name is required."); return; }
+    if (!catName.trim()) { alert("Category name is required."); return; }
     setSavingCat(true);
     try {
-      const subTags = catForm.subTags.split(",").map(s => s.trim()).filter(Boolean);
+      const subTags = catSubTags.split(",").map(s=>s.trim()).filter(Boolean);
       if (editCatId) {
-        const r = await axios.put(`${API}/api/categories/${editCatId}`, { name: catForm.name.trim(), subTags });
+        const r = await axios.put(`${API}/api/categories/${editCatId}`, { name:catName.trim(), subTags });
         setCategories(p => p.map(c => c._id===editCatId ? r.data : c));
       } else {
-        const r = await axios.post(`${API}/api/categories`, { name: catForm.name.trim(), subTags });
+        const r = await axios.post(`${API}/api/categories`, { name:catName.trim(), subTags });
         setCategories(p => [...p, r.data]);
       }
-      setCatForm({ name: "", subTags: "" });
+      setCatName("");
+      setCatSubTags("");
       setEditCatId(null);
-    } catch { alert("Failed to save category."); }
+    } catch(e) {
+      console.error(e);
+      alert("Failed to save category.");
+    }
     finally { setSavingCat(false); }
   };
 
   const deleteCat = async (id, name) => {
-    if (!window.confirm(`Delete category "${name}"? Products with this category won't be affected.`)) return;
+    if (!window.confirm(`Delete category "${name}"?`)) return;
     setDeletingCatId(id);
-    try { await axios.delete(`${API}/api/categories/${id}`); setCategories(p => p.filter(c => c._id!==id)); }
+    try {
+      await axios.delete(`${API}/api/categories/${id}`);
+      setCategories(p => p.filter(c => c._id!==id));
+      if (expandedCat===id) setExpandedCat(null);
+    }
     catch { alert("Failed to delete category."); }
     finally { setDeletingCatId(null); }
   };
 
   const addSubTag = async (cat) => {
     if (!newSubTag.trim()) return;
-    const subTags = [...cat.subTags, newSubTag.trim()];
+    setAddingSubTagId(cat._id);
     try {
-      const r = await axios.put(`${API}/api/categories/${cat._id}`, { name: cat.name, subTags });
+      const subTags = [...cat.subTags, newSubTag.trim()];
+      const r = await axios.put(`${API}/api/categories/${cat._id}`, { name:cat.name, subTags });
       setCategories(p => p.map(c => c._id===cat._id ? r.data : c));
       setNewSubTag("");
     } catch { alert("Failed to add sub-tag."); }
+    finally { setAddingSubTagId(null); }
   };
 
-  const removeSubTag = async (cat, tag) => {
-    const subTags = cat.subTags.filter(t => t !== tag);
+  const removeSubTag = async (cat, tagToRemove) => {
     try {
-      const r = await axios.put(`${API}/api/categories/${cat._id}`, { name: cat.name, subTags });
+      const subTags = cat.subTags.filter(t => t!==tagToRemove);
+      const r = await axios.put(`${API}/api/categories/${cat._id}`, { name:cat.name, subTags });
       setCategories(p => p.map(c => c._id===cat._id ? r.data : c));
     } catch { alert("Failed to remove sub-tag."); }
   };
@@ -175,33 +201,33 @@ export default function Admin() {
       <Navbar />
       <div className="admin-page">
         <h1 className="admin-h1">🌿 Admin Dashboard</h1>
-        <p className="admin-sub">Manage products, categories and orders</p>
+        <p className="admin-sub">Nova Mini Market — Manage everything here</p>
 
         <div className="admin-tabs">
           {tabBtn("products", `📦 Products${products.length>0?` (${products.length})`:""}`)}
-          {tabBtn("form", editId ? "✏️ Edit" : "➕ Add Product")}
-          {tabBtn("categories", `🏷️ Categories${categories.length>0?` (${categories.length})`:""}`)}
+          {tabBtn("form", editId?"✏️ Edit":"➕ Add")}
+          {tabBtn("categories", `🏷️ Categories`)}
           {tabBtn("orders", `📋 Orders${orders.length>0?` (${orders.length})`:""}`)}
         </div>
 
         {/* ── PRODUCTS LIST ── */}
-        {tab === "products" && (
+        {tab==="products" && (
           <div>
             <div className="admin-search">
               <span className="admin-search-icon">🔍</span>
               <input type="text" placeholder="Search products..." value={pSearch} onChange={e=>setPSearch(e.target.value)} className="admin-search-input" />
             </div>
             {productsLoading ? <p style={{color:"#888",textAlign:"center",padding:"2rem"}}>Loading...</p> :
-             fp.length === 0 ? <p style={{color:"#aaa",textAlign:"center",padding:"2rem"}}>No products found.</p> :
-             fp.map(p => (
+             fp.length===0 ? <p style={{color:"#aaa",textAlign:"center",padding:"2rem"}}>No products found.</p> :
+             fp.map(p=>(
               <div key={p._id} className="admin-product-row">
                 <img src={p.image||"https://placehold.co/52x52?text=Item"} alt={p.name} className="admin-product-img" onError={e=>{e.target.src="https://placehold.co/52x52?text=Item";}} />
                 <div className="admin-product-info">
                   <div className="admin-product-name">{p.name}</div>
                   <div className="admin-product-meta">{p.category} · ETB {Number(p.price).toLocaleString()} · Stock: {p.stock??0}</div>
                   <div className="admin-product-badges">
-                    {p.discount>0 && <span className="admin-badge disc">-{p.discount}%</span>}
-                    {p.stock===0 && <span className="admin-badge out">Out of stock</span>}
+                    {p.discount>0&&<span className="admin-badge disc">-{p.discount}%</span>}
+                    {p.stock===0&&<span className="admin-badge out">Out of stock</span>}
                   </div>
                 </div>
                 <div className="admin-product-actions">
@@ -215,23 +241,31 @@ export default function Admin() {
           </div>
         )}
 
-        {/* ── ADD/EDIT PRODUCT ── */}
-        {tab === "form" && (
+        {/* ── ADD / EDIT PRODUCT ── */}
+        {tab==="form" && (
           <div>
             <div className="admin-form-header">
-              <h2 className="admin-form-title">{editId?"✏️ Edit Product":"➕ Add Product"}</h2>
-              {editId && <button className="admin-cancel-btn" onClick={()=>{setEditId(null);setForm(EMPTY);setTab("products");}}>✕ Cancel</button>}
+              <h2 className="admin-form-title">{editId?"✏️ Edit Product":"➕ Add New Product"}</h2>
+              {editId&&<button className="admin-cancel-btn" onClick={()=>{setEditId(null);setForm(EMPTY);setTab("products");}}>✕ Cancel</button>}
             </div>
-            {[["Product Name","name","e.g. Fresh Milk 1L","text"],["Price (ETB)","price","e.g. 120","number"],["Category","category","e.g. Dairy","text"],["Description","description","Short description...","text"],["Stock Quantity","stock","e.g. 50","number"],["Image URL","image","https://...","text"]].map(([l,k,ph,t])=>(
+            {[
+              ["Product Name","name","e.g. Fresh Milk 1L","text"],
+              ["Price (ETB)","price","e.g. 120","number"],
+              ["Category","category","e.g. Dairy","text"],
+              ["Description","description","Short description...","text"],
+              ["Stock Quantity","stock","e.g. 50","number"],
+              ["Image URL","image","https://...","text"],
+            ].map(([l,k,ph,t])=>(
               <div key={k} className="admin-field">
                 <label>{l}</label>
                 <input type={t} placeholder={ph} value={form[k]} onChange={e=>setForm(p=>({...p,[k]:e.target.value}))} />
               </div>
             ))}
             <div className="admin-discount-field">
-              <label className="admin-discount-label">🔥 Discount % (optional)</label>
-              <input type="number" placeholder="e.g. 20 means 20% off" value={form.discount} min="0" max="90" onChange={e=>setForm(p=>({...p,discount:e.target.value}))} className="admin-discount-input" />
-              {form.discount>0 && form.price && (
+              <label className="admin-discount-label">🔥 Discount % (optional — 0 for no discount)</label>
+              <input type="number" placeholder="e.g. 20 means 20% off" value={form.discount} min="0" max="90"
+                onChange={e=>setForm(p=>({...p,discount:e.target.value}))} className="admin-discount-input" />
+              {form.discount>0&&form.price&&(
                 <div className="admin-discount-preview">
                   Customers see: <s>ETB {Number(form.price).toLocaleString()}</s> → <strong>ETB {Math.round(form.price-form.price*form.discount/100).toLocaleString()}</strong>
                 </div>
@@ -244,28 +278,32 @@ export default function Admin() {
         )}
 
         {/* ── CATEGORIES ── */}
-        {tab === "categories" && (
+        {tab==="categories" && (
           <div>
             {/* Add/Edit form */}
-            <div style={{background:"#fff",border:"1.5px solid #cde8ba",borderRadius:12,padding:"14px",marginBottom:16}}>
+            <div style={{background:"#fff",border:"1.5px solid #cde8ba",borderRadius:12,padding:14,marginBottom:16}}>
               <h3 style={{fontSize:14,fontWeight:700,color:"#1a5c2a",marginBottom:12}}>
-                {editCatId ? "✏️ Edit Category" : "➕ Add New Category"}
+                {editCatId?"✏️ Edit Category":"➕ Add New Category"}
               </h3>
               <div className="admin-field">
                 <label>Category Name</label>
-                <input type="text" placeholder="e.g. Dairy" value={catForm.name} onChange={e=>setCatForm(p=>({...p,name:e.target.value}))} />
+                <input type="text" placeholder="e.g. Dairy" value={catName} onChange={e=>setCatName(e.target.value)} />
               </div>
               <div className="admin-field">
                 <label>Sub-tags (comma separated)</label>
-                <input type="text" placeholder="e.g. Fresh Milk, Cheese, Yogurt" value={catForm.subTags} onChange={e=>setCatForm(p=>({...p,subTags:e.target.value}))} />
-                <p style={{fontSize:11,color:"#888",marginTop:4}}>Separate each type with a comma</p>
+                <input type="text" placeholder="e.g. Fresh Milk, Cheese, Yogurt" value={catSubTags} onChange={e=>setCatSubTags(e.target.value)} />
+                <p style={{fontSize:11,color:"#888",marginTop:4}}>Separate each type with a comma. You can also add/remove them individually below.</p>
               </div>
               <div style={{display:"flex",gap:8}}>
-                <button className="admin-save-btn" style={{flex:1}} onClick={saveCat} disabled={savingCat}>
+                <button
+                  onClick={saveCat}
+                  disabled={savingCat}
+                  style={{flex:1,padding:"11px",background:savingCat?"#aaa":"#1a5c2a",color:"#fff",border:"none",borderRadius:9,fontSize:14,fontWeight:700,cursor:savingCat?"not-allowed":"pointer"}}
+                >
                   {savingCat?"Saving...":editCatId?"Update Category":"Add Category"}
                 </button>
-                {editCatId && (
-                  <button className="admin-cancel-btn" onClick={cancelEditCat} style={{flexShrink:0}}>✕ Cancel</button>
+                {editCatId&&(
+                  <button className="admin-cancel-btn" onClick={cancelEditCat}>✕ Cancel</button>
                 )}
               </div>
             </div>
@@ -273,65 +311,72 @@ export default function Admin() {
             {/* Categories list */}
             {catsLoading ? (
               <p style={{color:"#888",textAlign:"center",padding:"2rem"}}>Loading categories...</p>
-            ) : categories.length === 0 ? (
+            ) : categories.length===0 ? (
               <div style={{textAlign:"center",padding:"2rem",color:"#aaa"}}>
                 <p style={{fontSize:32,marginBottom:8}}>🏷️</p>
                 <p>No categories yet. Add one above!</p>
               </div>
-            ) : categories.map(cat => (
+            ) : categories.map(cat=>(
               <div key={cat._id} style={{background:"#fff",border:"1px solid #d4edba",borderRadius:12,marginBottom:8,overflow:"hidden"}}>
-                {/* Cat header */}
-                <div style={{padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{flex:1}}>
+                {/* Header row */}
+                <div style={{padding:"12px 14px",display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{flex:1,minWidth:0}}>
                     <p style={{fontSize:14,fontWeight:700,color:"#1a5c2a",margin:0}}>{cat.name}</p>
-                    <p style={{fontSize:11,color:"#888",margin:"2px 0 0"}}>{cat.subTags.length} sub-tag{cat.subTags.length!==1?"s":""}</p>
+                    <p style={{fontSize:11,color:"#888",margin:"2px 0 0"}}>
+                      {cat.subTags.length} type{cat.subTags.length!==1?"s":""}
+                      {cat.subTags.length>0?`: ${cat.subTags.slice(0,3).join(", ")}${cat.subTags.length>3?"...":""}` : ""}
+                    </p>
                   </div>
                   <button
                     onClick={()=>setExpandedCat(expandedCat===cat._id?null:cat._id)}
-                    style={{background:"none",border:"1.5px solid #cde8ba",borderRadius:7,padding:"5px 10px",fontSize:11,color:"#1a5c2a",cursor:"pointer",fontWeight:600}}
+                    style={{background:"none",border:"1.5px solid #cde8ba",borderRadius:7,padding:"5px 8px",fontSize:11,color:"#1a5c2a",cursor:"pointer",fontWeight:600,flexShrink:0}}
                   >
-                    {expandedCat===cat._id?"▲ Hide":"▼ Types"}
+                    {expandedCat===cat._id?"▲":"▼ Types"}
                   </button>
-                  <button className="admin-edit-btn" onClick={()=>startEditCat(cat)}>✏️</button>
-                  <button className="admin-del-btn" onClick={()=>deleteCat(cat._id,cat.name)} disabled={deletingCatId===cat._id}>
+                  <button className="admin-edit-btn" onClick={()=>startEditCat(cat)} style={{flexShrink:0}}>✏️</button>
+                  <button className="admin-del-btn" onClick={()=>deleteCat(cat._id,cat.name)} disabled={deletingCatId===cat._id} style={{flexShrink:0}}>
                     {deletingCatId===cat._id?"...":"🗑"}
                   </button>
                 </div>
 
-                {/* Sub-tags expanded */}
-                {expandedCat===cat._id && (
+                {/* Expanded sub-tags */}
+                {expandedCat===cat._id&&(
                   <div style={{borderTop:"1px solid #eef7e8",padding:"12px 14px",background:"#fafef7"}}>
                     <p style={{fontSize:11,fontWeight:700,color:"#1a5c2a",textTransform:"uppercase",letterSpacing:".05em",marginBottom:8}}>
-                      Sub-tags / Types
+                      Sub-types / Tags
                     </p>
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-                      {cat.subTags.length === 0 ? (
-                        <p style={{fontSize:12,color:"#aaa"}}>No sub-tags yet.</p>
-                      ) : cat.subTags.map(tag => (
-                        <span key={tag} style={{display:"inline-flex",alignItems:"center",gap:4,background:"#f0f7ec",border:"1px solid #cde8ba",borderRadius:999,padding:"3px 10px",fontSize:12,color:"#1a5c2a"}}>
+
+                    {/* Existing sub-tags */}
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+                      {cat.subTags.length===0 ? (
+                        <p style={{fontSize:12,color:"#aaa"}}>No sub-types yet. Add one below.</p>
+                      ) : cat.subTags.map(tag=>(
+                        <span key={tag} style={{display:"inline-flex",alignItems:"center",gap:4,background:"#f0f7ec",border:"1px solid #cde8ba",borderRadius:999,padding:"4px 10px",fontSize:12,color:"#1a5c2a"}}>
                           {tag}
                           <button
                             onClick={()=>removeSubTag(cat,tag)}
-                            style={{background:"none",border:"none",cursor:"pointer",color:"#cc3333",fontSize:13,lineHeight:1,padding:0,marginLeft:2,fontWeight:700}}
+                            style={{background:"none",border:"none",cursor:"pointer",color:"#cc3333",fontSize:14,lineHeight:1,padding:0,fontWeight:700}}
                           >×</button>
                         </span>
                       ))}
                     </div>
+
                     {/* Add new sub-tag */}
                     <div style={{display:"flex",gap:6}}>
                       <input
                         type="text"
-                        placeholder="Add new type e.g. Butter"
+                        placeholder="Add type e.g. Butter"
                         value={newSubTag}
                         onChange={e=>setNewSubTag(e.target.value)}
                         onKeyDown={e=>e.key==="Enter"&&addSubTag(cat)}
-                        style={{flex:1,padding:"8px 10px",fontSize:13,border:"1.5px solid #cde8ba",borderRadius:8,outline:"none",fontFamily:"inherit"}}
+                        style={{flex:1,padding:"9px 10px",fontSize:13,border:"1.5px solid #cde8ba",borderRadius:8,outline:"none",fontFamily:"inherit"}}
                       />
                       <button
                         onClick={()=>addSubTag(cat)}
-                        style={{padding:"8px 14px",background:"#1a5c2a",color:"#fff",border:"none",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer"}}
+                        disabled={addingSubTagId===cat._id}
+                        style={{padding:"9px 14px",background:"#1a5c2a",color:"#fff",border:"none",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",flexShrink:0}}
                       >
-                        + Add
+                        {addingSubTagId===cat._id?"...":"+ Add"}
                       </button>
                     </div>
                   </div>
@@ -342,7 +387,7 @@ export default function Admin() {
         )}
 
         {/* ── ORDERS ── */}
-        {tab === "orders" && (
+        {tab==="orders" && (
           <div>
             <div className="admin-orders-header">
               <span className="admin-orders-count">{orders.length} order{orders.length!==1?"s":""}</span>
@@ -354,10 +399,10 @@ export default function Admin() {
                 <div style={{fontSize:40,marginBottom:10}}>📭</div>
                 <p>No orders yet.</p>
               </div>
-            ) : orders.map(order => {
-              const st = STATUS[order.status]||STATUS.pending;
-              const exp = expandedOrder===order._id;
-              return (
+            ) : orders.map(order=>{
+              const st=STATUS[order.status]||STATUS.pending;
+              const exp=expandedOrder===order._id;
+              return(
                 <div key={order._id} className="admin-order-card">
                   <div className="admin-order-header" onClick={()=>setExpandedOrder(exp?null:order._id)}>
                     <div className="admin-order-info">
@@ -371,7 +416,7 @@ export default function Admin() {
                       <div className="admin-order-items-count">{order.items.reduce((s,i)=>s+(i.qty||1),0)} items {exp?"▲":"▼"}</div>
                     </div>
                   </div>
-                  {exp && (
+                  {exp&&(
                     <div className="admin-order-body">
                       <div className="admin-order-items-label">Items Ordered</div>
                       {order.items.map((item,i)=>(
@@ -397,7 +442,10 @@ export default function Admin() {
           </div>
         )}
       </div>
-      <div className="nm-footer">🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
+      <div className="nm-footer">
+        🌿 Nova Mini Market &nbsp;·&nbsp;
+        <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a>
+      </div>
     </>
   );
 }
