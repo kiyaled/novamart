@@ -1,20 +1,8 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
-import { FaTelegramPlane } from "react-icons/fa";
 
 const API = "https://novamart-backend.vercel.app";
-const CATS = ["All","Dairy","Bakery","Beverages","Snacks","Fruits & Vegetables","Meat","Frozen","Other"];
-const SUBTAGS = {
-  Dairy:["Fresh Milk","Cheese","Yogurt","Butter","Cream","Eggs"],
-  Bakery:["Bread","Cake","Biscuits","Pastry","Rolls"],
-  Beverages:["Juice","Water","Soda","Tea","Coffee","Energy Drink"],
-  Snacks:["Chips","Nuts","Chocolate","Candy","Popcorn"],
-  "Fruits & Vegetables":["Fruits","Leafy Greens","Root Vegetables","Herbs","Peppers"],
-  Meat:["Beef","Chicken","Fish","Lamb","Sausage"],
-  Frozen:["Frozen Meals","Ice Cream","Frozen Vegetables","Frozen Meat"],
-  Other:[],
-};
 const BG = "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=1600&q=75";
 
 function greeting() {
@@ -26,6 +14,7 @@ function sale(price, disc) { return (!disc || disc <= 0) ? price : Math.round(pr
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
   const [showSug, setShowSug] = useState(false);
   const [cat, setCat] = useState("All");
@@ -37,6 +26,7 @@ export default function Home() {
 
   useEffect(() => {
     axios.get(`${API}/api/products`).then(r => setProducts(r.data)).catch(console.log);
+    axios.get(`${API}/api/categories`).then(r => setCategories(r.data)).catch(console.log);
   }, []);
 
   useEffect(() => {
@@ -69,22 +59,35 @@ export default function Home() {
   };
 
   const promos = useMemo(() => products.filter(p => p.discount > 0), [products]);
+
   const sugs = useMemo(() => {
     if (!search.trim()) return [];
     const q = search.toLowerCase();
-    return products.filter(p => (p.name||"").toLowerCase().includes(q) || (p.category||"").toLowerCase().includes(q)).slice(0,6);
+    return products.filter(p =>
+      (p.name||"").toLowerCase().includes(q) ||
+      (p.category||"").toLowerCase().includes(q)
+    ).slice(0, 6);
   }, [search, products]);
 
   const filtered = useMemo(() => products.filter(p => {
     const s = search.toLowerCase();
     return (
-      ((p.name||"").toLowerCase().includes(s) || (p.description||"").toLowerCase().includes(s) || (p.category||"").toLowerCase().includes(s)) &&
+      ((p.name||"").toLowerCase().includes(s) ||
+       (p.description||"").toLowerCase().includes(s) ||
+       (p.category||"").toLowerCase().includes(s)) &&
       (cat === "All" || p.category === cat) &&
-      (!tag || (p.name||"").toLowerCase().includes(tag.toLowerCase()) || (p.description||"").toLowerCase().includes(tag.toLowerCase()))
+      (!tag ||
+       (p.name||"").toLowerCase().includes(tag.toLowerCase()) ||
+       (p.description||"").toLowerCase().includes(tag.toLowerCase()))
     );
   }), [products, search, cat, tag]);
 
-  const subtags = SUBTAGS[cat] || [];
+  // Build category list: "All" + categories from DB
+  const catList = ["All", ...categories.map(c => c.name)];
+
+  // Get subtags for active category from DB
+  const activeCatObj = categories.find(c => c.name === cat);
+  const subtags = activeCatObj ? activeCatObj.subTags : [];
 
   return (
     <>
@@ -96,8 +99,8 @@ export default function Home() {
           <div className="home-hero-overlay" />
           <div className="home-hero-content">
             <p className="home-hero-sub">🌿 {greeting()}, Welcome to</p>
-            <h1 className="home-hero-h1">Nova MiniMarket</h1>
-            <h1 className="home-hero-tag">የሚመጥንዎ አገልግሎት</h1>
+            <h1 className="home-hero-h1">Nova Milk &amp; Mart</h1>
+            <p className="home-hero-tag">Fresh Milk · Quality Products · Better Life</p>
             <div className="home-hero-pills">
               {["🥛 Fresh Milk","🛒 Groceries","⭐ Quality","😊 Service"].map(t => (
                 <span key={t} className="home-pill">{t}</span>
@@ -110,7 +113,14 @@ export default function Home() {
           {/* Search */}
           <div ref={ref} className="home-search">
             <span className="home-search-icon">🔍</span>
-            <input type="text" placeholder="Search products..." value={search} onChange={e => { setSearch(e.target.value); setShowSug(true); }} onFocus={() => setShowSug(true)} className="home-search-input" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={search}
+              onChange={e => { setSearch(e.target.value); setShowSug(true); }}
+              onFocus={() => setShowSug(true)}
+              className="home-search-input"
+            />
             {search && <button onClick={() => { setSearch(""); setShowSug(false); }} className="home-search-clear">✕</button>}
             {showSug && sugs.length > 0 && (
               <div className="home-suggest">
@@ -147,25 +157,43 @@ export default function Home() {
             </div>
           )}
 
-          {/* Cats */}
+          {/* Category tabs — from database */}
           <div className="home-cats">
-            {CATS.map(c => <button key={c} className={`home-cat${cat===c?" on":""}`} onClick={() => { setCat(c); setTag(null); }}>{c}</button>)}
+            {catList.map(c => (
+              <button
+                key={c}
+                className={`home-cat${cat===c?" on":""}`}
+                onClick={() => { setCat(c); setTag(null); }}
+              >
+                {c}
+              </button>
+            ))}
           </div>
 
+          {/* Subtags — from database */}
           {subtags.length > 0 && (
             <div className="home-subtags">
               <div className="home-subtags-label">Filter by type:</div>
               <div className="home-subtags-list">
-                {subtags.map(t => <button key={t} className={`home-subtag${tag===t?" on":""}`} onClick={() => setTag(tag===t?null:t)}>{t}</button>)}
+                {subtags.map(t => (
+                  <button
+                    key={t}
+                    className={`home-subtag${tag===t?" on":""}`}
+                    onClick={() => setTag(tag===t ? null : t)}
+                  >
+                    {t}
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
           <p className="home-count">
-            {filtered.length === 0 ? "No products found" : `${filtered.length} product${filtered.length!==1?"s":""}${cat!=="All"?` in ${cat}`:""}${tag?` › ${tag}`:""}${search?` for "${search}"`:""}` }
+            {filtered.length === 0 ? "No products found" :
+             `${filtered.length} product${filtered.length!==1?"s":""}${cat!=="All"?` in ${cat}`:""}${tag?` › ${tag}`:""}${search?` for "${search}"`:""}` }
           </p>
 
-          {/* Grid */}
+          {/* Product grid */}
           <div className="home-grid">
             {filtered.map(product => {
               const isOos = oos(product.stock);
@@ -179,7 +207,12 @@ export default function Home() {
               return (
                 <div key={product._id} className="home-card">
                   <div className="home-card-img-wrap">
-                    <img src={product.image || "https://placehold.co/300x200?text=No+Image"} alt={product.name} className="home-card-img" onError={e => { e.target.src="https://placehold.co/300x200?text=No+Image"; }} />
+                    <img
+                      src={product.image || "https://placehold.co/300x200?text=No+Image"}
+                      alt={product.name}
+                      className="home-card-img"
+                      onError={e => { e.target.src="https://placehold.co/300x200?text=No+Image"; }}
+                    />
                     {hasDis && <span className="home-card-badge disc">-{product.discount}%</span>}
                     {!hasDis && product.stock > 0 && product.stock <= 5 && <span className="home-card-badge low">{product.stock} left</span>}
                     {isOos && <span className="home-card-badge out">Out</span>}
@@ -207,7 +240,11 @@ export default function Home() {
                       </div>
                     )}
                     {!isOos && qty > 1 && <div className="home-subtotal">Total: ETB {(Number(final)*qty).toLocaleString()}</div>}
-                    <button className={`home-add-btn${added?" added":""}`} onClick={() => addToCart(product)} disabled={isOos}>
+                    <button
+                      className={`home-add-btn${added?" added":""}`}
+                      onClick={() => addToCart(product)}
+                      disabled={isOos}
+                    >
                       {isOos ? "Out of stock" : added ? "✓ Added!" : "🛒 Add to Cart"}
                     </button>
                   </div>
@@ -219,23 +256,15 @@ export default function Home() {
           {filtered.length === 0 && products.length > 0 && (
             <div className="home-empty">
               <div className="home-empty-icon">😕</div>
-              <p>No products match your search.</p>
-              <button className="home-empty-btn" onClick={() => { setSearch(""); setCat("All"); setTag(null); }}>Clear filters</button>
+              <p>No products found.</p>
+              <button className="home-empty-btn" onClick={() => { setSearch(""); setCat("All"); setTag(null); }}>
+                Clear filters
+              </button>
             </div>
           )}
         </div>
 
-        <div className="nm-footer">
-          <div>🌿 Nova Minimarket &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
-          <a
-           href="https://t.me/Natinana111"
-           target="_blank"
-           rel="noopener noreferrer"
-           style={{ marginTop: "8px", display: "inline-block" }}
-          >
-           <FaTelegramPlane size={24} color="#229ED9" />
-          </a>
-      </div>
+        <div className="nm-footer">🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
       </div>
     </>
   );
