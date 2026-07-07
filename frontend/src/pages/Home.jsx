@@ -99,7 +99,7 @@ export default function Home() {
           <div className="home-hero-overlay" />
           <div className="home-hero-content">
             <p className="home-hero-sub">🌿 {greeting()}, Welcome to</p>
-            <h1 className="home-hero-h1">Nova Milk &amp; Mart</h1>
+            <h1 className="home-hero-h1">Nova Minimarket</h1>
             <p className="home-hero-tag">Fresh Milk · Quality Products · Better Life</p>
             <div className="home-hero-pills">
               {["🥛 Fresh Milk","🛒 Groceries","⭐ Quality","😊 Service"].map(t => (

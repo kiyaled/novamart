@@ -107,7 +107,7 @@ export default function Navbar() {
           <Link to="/cart" className="nav-mobile-link">
             🛒 Cart {cartCount > 0 && <span style={{ background: "#6abf3a", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999, marginLeft: 6 }}>{cartCount}</span>}
           </Link>
-          <a href={`https://t.me/${TELEGRAM_USERNAME}`} target="_blank" rel="noopener noreferrer" className="nav-mobile-link" style={{ color: "#2AABEE", borderBottom: "none" }}>
+          <a href={`https://t.me/$@Natinana1111`} target="_blank" rel="noopener noreferrer" className="nav-mobile-link" style={{ color: "#2AABEE", borderBottom: "none" }}>
             ✈️ Telegram
           </a>
           <Link to="/admin" className="nav-mobile-link" style={{ borderBottom: "none", color: "rgba(255,255,255,.35)", fontSize: 11 }}>⚙️ Admin</Link>

@@ -176,7 +176,7 @@ export default function Cart() {
           <Link to="/" onClick={()=>setStep(STEP_CART)} className="success-continue-btn" style={{display:"block",marginTop:20}}>🛒 Continue Shopping</Link>
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova Mini Market &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
+      <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
     </>
   );
 
@@ -211,7 +211,7 @@ export default function Cart() {
           <PaySection total={totalPrice} />
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova Mini Market &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
+      <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
     </>
   );
 
@@ -268,7 +268,7 @@ export default function Cart() {
           )}
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova Mini Market &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
+      <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
     </>
   );
 }
