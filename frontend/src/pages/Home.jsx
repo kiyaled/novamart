@@ -264,7 +264,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="nm-footer">🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
+        <div className="nm-footer">🌿 Nova Minimarket &nbsp;·&nbsp; © 2026 All rights reserved.</div>
       </div>
     </>
   );

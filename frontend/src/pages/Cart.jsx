@@ -97,7 +97,7 @@ export default function Cart() {
   const [step, setStep] = useState(STEP_CART);
   const [submitting, setSubmitting] = useState(false);
   const [summary, setSummary] = useState(null);
-  const [form, setForm] = useState({ name:"", phone:"", block:"", houseNumber:"" });
+  const [form, setForm] = useState({ name:"", phone:"", block:"" });
   const [errors, setErrors] = useState({});
 
   const load = () => {
@@ -128,7 +128,6 @@ export default function Cart() {
     if (!form.phone.trim()) e.phone="Phone number is required";
     else if (!/^[0-9+\s\-]{7,15}$/.test(form.phone.trim())) e.phone="Enter a valid phone number";
     if (!form.block.trim()) e.block="Block is required";
-    if (!form.houseNumber.trim()) e.houseNumber="House number is required";
     return e;
   };
 
@@ -137,7 +136,7 @@ export default function Cart() {
     if (Object.keys(e).length>0) { setErrors(e); return; }
     setSubmitting(true);
     try {
-      await axios.post(`${API}/api/orders`, { customer:{name:form.name.trim(),phone:form.phone.trim(),block:form.block.trim(),houseNumber:form.houseNumber.trim()}, items, totalPrice });
+      await axios.post(`${API}/api/orders`, { customer:{name:form.name.trim(),phone:form.phone.trim(),block:form.block.trim()}, items, totalPrice });
       setSummary({...form,totalPrice,totalItems});
       clear();
       setStep(STEP_SUCCESS);
@@ -164,7 +163,7 @@ export default function Cart() {
           <p className="success-sub">Thank you, <strong>{summary.name}</strong>!<br/>We'll call <strong>{summary.phone}</strong> to confirm delivery.</p>
           <div className="success-info">
             <div className="success-info-title">📋 Delivery Info</div>
-            {[["👤 Name",summary.name],["📞 Phone",summary.phone],["🏘️ Block",`Block ${summary.block}`],["🏠 House",`House ${summary.houseNumber}`]].map(([l,v])=>(
+            {[["👤 Name",summary.name],["📞 Phone",summary.phone],["🏘️ Block",`Block ${summary.block}`]].map(([l,v])=>(
               <div key={l} className="success-info-row"><span className="success-info-label">{l}</span><span className="success-info-val">{v}</span></div>
             ))}
             <div className="success-total">
@@ -201,7 +200,7 @@ export default function Cart() {
             {field("📞 Phone Number","phone","e.g. 0911 234 567","tel")}
             <div className="form-2col">
               <div>{field("🏘️ Block","block","e.g. B2")}</div>
-              <div>{field("🏠 House No.","houseNumber","e.g. 14")}</div>
+              </div>
             </div>
             <button className="form-submit-btn" onClick={handleSubmit} disabled={submitting}>
               {submitting?"⏳ Placing order...":"✅ Place Order"}
@@ -268,7 +267,7 @@ export default function Cart() {
           )}
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
+      <div className="nm-footer">🌿 Nova Minimarket &nbsp;·&nbsp; © 2026 All rights reserved.</div>
     </>
   );
 }

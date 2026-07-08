@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 const DARK_GREEN = "#1a5c2a";
 const BRIGHT_GREEN = "#6abf3a";
-const TELEGRAM_USERNAME = "NovaMartET"; // change to your real telegram username
+const TELEGRAM_USERNAME = "Natinana111"; // change to your real telegram username
 
 export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
@@ -37,7 +37,7 @@ export default function Navbar() {
 
   // Telegram SVG logo
   const TelegramIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L6.972 13.59l-2.948-.924c-.64-.203-.654-.64.136-.95l11.527-4.444c.533-.194 1.001.131.875.976z"/>
     </svg>
   );
@@ -60,8 +60,8 @@ export default function Navbar() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 30,
-              height: 30,
+              width: 24,
+              height: 24,
               borderRadius: "50%",
               background: "#2AABEE",
               flexShrink: 0,
