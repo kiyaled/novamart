@@ -52,7 +52,7 @@ export default function Navbar() {
           </Link>
           {/* Telegram button */}
           <a
-            href={`https://t.me/$@Natinana111`}
+            href={`https://t.me/Natinana111`}
             target="_blank"
             rel="noopener noreferrer"
             title="Contact us on Telegram"
