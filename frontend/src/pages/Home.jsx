@@ -264,7 +264,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="nm-footer">🌿 Nova Minimarket &nbsp;·&nbsp; © 2026 All rights reserved.</div>
+        <div className="nm-footer">🌿 Nova Minimarket · © 2026 All rights reserved.</div>
       </div>
     </>
   );

@@ -471,7 +471,7 @@ export default function Admin() {
           </div>
         )}
       </div>
-      <div className="nm-footer">🌿 Nova Milk &amp; Mart — Fresh Milk. Quality Products. Better Life.</div>
+      <div className="nm-footer">🌿 Nova Minimarket · © 2026 All rights reserved.</div>
     </>
   );
 }
