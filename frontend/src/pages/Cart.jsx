@@ -55,15 +55,6 @@ function PaySection({ total }) {
       {PAYMENTS.map(a => <PayCard key={a.bank} acc={a} />)}
 
       {/* Telegram username below accounts */}
-      <div style={{textAlign:"center",padding:"8px 0",borderTop:"1px solid #e8f5e0",borderBottom:"1px solid #e8f5e0",margin:"10px 0"}}>
-        <p style={{fontSize:12,color:"#888",margin:"0 0 4px"}}>Telegram</p>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-          <span style={{fontSize:15,fontWeight:700,color:"#2AABEE",fontFamily:"monospace"}}>@Natinana111</span>
-          <button onClick={()=>copy("@Natinana111",setTgCopied)} style={{background:tgCopied?"#6abf3a":"#f0f7ec",color:tgCopied?"#fff":"#1a5c2a",border:"1.5px solid #cde8ba",borderRadius:6,fontSize:10,fontWeight:700,padding:"3px 8px",cursor:"pointer"}}>
-            {tgCopied?"✓":"📋"}
-          </button>
-        </div>
-      </div>
 
       <div className="pay-note">
         <span style={{fontSize:18,flexShrink:0}}>⚠️</span>
@@ -186,7 +177,7 @@ export default function Cart() {
           <Link to="/" onClick={()=>setStep(STEP_CART)} className="success-continue-btn" style={{display:"block",marginTop:20}}>🛒 Continue Shopping</Link>
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
+      <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; © 2026 All rights reserved.</div>
     </>
   );
 
@@ -220,7 +211,7 @@ export default function Cart() {
           <PaySection total={totalPrice} />
         </div>
       </div>
-      <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
+      <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; © 2026 All rights reserved.</div>
     </>
   );
 
