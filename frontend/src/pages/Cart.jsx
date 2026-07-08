@@ -82,10 +82,10 @@ function PaySection({ total }) {
           {/* Phone — icon + number side by side */}
           <a
             href="tel:+251937066660"
-            style={{background:"#fff",border:"1.5px solid #d4edba",borderRadius:10,padding:"10px 12px",textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}
+            style={{background:"#fff",border:"1.5px solid #d4edba",borderRadius:10,padding:"10px 10px",textDecoration:"none",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6}}
           >
-            <div style={{width:30,height:30,borderRadius:8,background:"#1a5c2a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>📞</div>
-            <div style={{fontSize:11,fontWeight:700,color:"#1a1a1a",fontFamily:"monospace",lineHeight:1.2}}>+251 937<br/>066 660</div>
+            <div style={{width:34,height:34,borderRadius:8,background:"#1a5c2a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>📞</div>
+            <div style={{fontSize:11,fontWeight:700,color:"#1a1a1a",fontFamily:"monospace",textAlign:"center",lineHeight:1.2}}>+251 937<br/>066 660</div>
           </a>
         </div>
         <p style={{fontSize:10,color:"#888",marginTop:6,textAlign:"center"}}>We're available 7 days a week 🌿</p>
