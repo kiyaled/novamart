@@ -100,7 +100,7 @@ export default function Home() {
           <div className="home-hero-content">
             <p className="home-hero-sub">🌿 {greeting()}, Welcome to</p>
             <h1 className="home-hero-h1">Nova Minimarket</h1>
-            <p className="home-hero-tag">Fresh Milk · Quality Products · Better Life</p>
+            <p className="home-hero-tag">Quality Products · Better Life</p>
             <div className="home-hero-pills">
               {["🥛 Fresh Milk","🛒 Groceries","⭐ Quality","😊 Service"].map(t => (
                 <span key={t} className="home-pill">{t}</span>
