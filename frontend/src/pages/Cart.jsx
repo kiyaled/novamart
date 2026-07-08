@@ -15,6 +15,16 @@ const PAYMENTS = [
   { bank:"Dashen Bank", number:"5008886050021", emoji:"🏧", color:"#0f766e", bg:"#f0fdfa", border:"#99f6e4" },
 ];
 
+const TELEGRAM_USERNAME = "Natinana111";
+
+function TelegramIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L6.972 13.59l-2.948-.924c-.64-.203-.654-.64.136-.95l11.527-4.444c.533-.194 1.001.131.875.976z"/>
+    </svg>
+  );
+}
+
 function PayCard({ acc }) {
   const [copied, setCopied] = useState(false);
   const copy = () => { navigator.clipboard.writeText(acc.number).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
@@ -35,7 +45,6 @@ function PayCard({ acc }) {
 
 function PaySection({ total }) {
   const [tgCopied, setTgCopied] = useState(false);
-  const [phCopied, setPhCopied] = useState(false);
   const copy = (text, setter) => { navigator.clipboard.writeText(text).then(() => { setter(true); setTimeout(() => setter(false), 2000); }); };
 
   return (
@@ -67,24 +76,26 @@ function PaySection({ total }) {
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
 
           {/* Telegram */}
-          <div style={{background:"#fff",border:"1.5px solid #e0e7ff",borderRadius:10,padding:"10px 10px",textAlign:"center"}}>
-            <div style={{width:34,height:34,borderRadius:8,background:"#2AABEE",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,margin:"0 auto 6px"}}>✈️</div>
-            <div style={{fontSize:10,fontWeight:700,color:"#2AABEE",marginBottom:2}}>Telegram</div>
-            <div style={{fontSize:12,fontWeight:700,color:"#1a1a1a",fontFamily:"monospace",marginBottom:6}}>@Natinana111</div>
-            <button onClick={()=>copy("@Natinana111",setTgCopied)} style={{background:tgCopied?"#6abf3a":"#f0f7ec",color:tgCopied?"#fff":"#2AABEE",border:"1.5px solid #bfdbfe",borderRadius:6,fontSize:10,fontWeight:700,padding:"4px 10px",cursor:"pointer",width:"100%"}}>
-              {tgCopied?"✓ Copied":"📋 Copy"}
-            </button>
-          </div>
+          <a
+            href={`https://t.me/${TELEGRAM_USERNAME}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{background:"#fff",border:"1.5px solid #e0e7ff",borderRadius:10,padding:"10px 10px",textAlign:"center",textDecoration:"none",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}
+          >
+            <div style={{width:34,height:34,borderRadius:8,background:"#2AABEE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 6px"}}>
+              <TelegramIcon />
+            </div>
+            <div style={{fontSize:10,fontWeight:700,color:"#2AABEE"}}>Telegram</div>
+          </a>
 
-          {/* Phone */}
-          <div style={{background:"#fff",border:"1.5px solid #d4edba",borderRadius:10,padding:"10px 10px",textAlign:"center"}}>
-            <div style={{width:34,height:34,borderRadius:8,background:"#1a5c2a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,margin:"0 auto 6px"}}>📞</div>
-            <div style={{fontSize:10,fontWeight:700,color:"#1a5c2a",marginBottom:2}}>Phone</div>
-            <div style={{fontSize:12,fontWeight:700,color:"#1a1a1a",fontFamily:"monospace",marginBottom:6}}>+251 937 066 660</div>
-            <button onClick={()=>copy("+251937066660",setPhCopied)} style={{background:phCopied?"#6abf3a":"#f0f7ec",color:phCopied?"#fff":"#1a5c2a",border:"1.5px solid #cde8ba",borderRadius:6,fontSize:10,fontWeight:700,padding:"4px 10px",cursor:"pointer",width:"100%"}}>
-              {phCopied?"✓ Copied":"📋 Copy"}
-            </button>
-          </div>
+          {/* Phone — icon + number side by side */}
+          <a
+            href="tel:+251937066660"
+            style={{background:"#fff",border:"1.5px solid #d4edba",borderRadius:10,padding:"10px 12px",textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}
+          >
+            <div style={{width:30,height:30,borderRadius:8,background:"#1a5c2a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>📞</div>
+            <div style={{fontSize:11,fontWeight:700,color:"#1a1a1a",fontFamily:"monospace",lineHeight:1.2}}>+251 937<br/>066 660</div>
+          </a>
         </div>
         <p style={{fontSize:10,color:"#888",marginTop:6,textAlign:"center"}}>We're available 7 days a week 🌿</p>
       </div>
@@ -200,7 +211,6 @@ export default function Cart() {
             {field("📞 Phone Number","phone","e.g. 0911 234 567","tel")}
             <div className="form-2col">
               <div>{field("🏘️ Block","block","e.g. B2")}</div>
-              </div>
             </div>
             <button className="form-submit-btn" onClick={handleSubmit} disabled={submitting}>
               {submitting?"⏳ Placing order...":"✅ Place Order"}
@@ -209,6 +219,7 @@ export default function Cart() {
           </div>
           <PaySection total={totalPrice} />
         </div>
+      </div>
       <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
     </>
   );
