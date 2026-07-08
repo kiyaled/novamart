@@ -209,7 +209,6 @@ export default function Cart() {
           </div>
           <PaySection total={totalPrice} />
         </div>
-      </div>
       <div className="nm-footer">🌿 Nova MiniMarket &nbsp;·&nbsp; <a href="https://t.me/Natinana111" style={{color:"#a8e6cf"}}>@Natinana111</a></div>
     </>
   );
