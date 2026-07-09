@@ -19,8 +19,7 @@ async function sendTelegramNotification(order) {
     `🛒 *New Order!*\n\n` +
     `👤 *Name:* ${order.customer.name}\n` +
     `📞 *Phone:* ${order.customer.phone}\n` +
-    `🏘️ *Block:* ${order.customer.block}\n` +
-    `🏠 *House:* ${order.customer.houseNumber}\n\n` +
+    `🏘️ *Block:* ${order.customer.block}\n\n` +
     `📦 *Items:*\n${itemsList}\n\n` +
     `💰 *Total: ETB ${Number(order.totalPrice).toLocaleString()}*\n` +
     `🆔 Order ID: ${order._id}`;
@@ -50,7 +49,7 @@ router.post("/", async (req, res) => {
   try {
     const { customer, items, totalPrice } = req.body;
 
-    if (!customer?.name || !customer?.phone || !customer?.block || !customer?.houseNumber) {
+    if (!customer?.name || !customer?.phone || !customer?.block) {
       return res.status(400).json({ error: "All customer fields are required." });
     }
     if (!items || items.length === 0) {
