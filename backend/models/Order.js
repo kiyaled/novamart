@@ -6,7 +6,6 @@ const orderSchema = new mongoose.Schema(
       name: { type: String, required: true },
       phone: { type: String, required: true },
       block: { type: String, required: true },
-      houseNumber: { type: String, required: true },
     },
     items: [
       {
