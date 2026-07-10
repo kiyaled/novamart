@@ -1,10 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
+const https = require("https");
 const Order = require("../models/Order");
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+// Disable keep-alive so serverless cold/frozen connections don't cause
+// "socket disconnected before secure TLS connection was established"
+const noKeepAliveAgent = new https.Agent({ keepAlive: false });
 
 async function sendTelegramNotification(order) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
@@ -25,16 +30,26 @@ async function sendTelegramNotification(order) {
     `💰 *Total: ETB ${Number(order.totalPrice).toLocaleString()}*\n` +
     `🆔 Order ID: ${order._id}`;
 
-  try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-    await axios.post(url, {
-      chat_id: TELEGRAM_CHAT_ID,
-      text: message,
-      parse_mode: "Markdown",
-    });
-    console.log("Telegram notification sent.");
-  } catch (err) {
-    console.error("Telegram notification failed:", err.response?.data || err.message);
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  const payload = {
+    chat_id: TELEGRAM_CHAT_ID,
+    text: message,
+    parse_mode: "Markdown",
+  };
+
+  // Try up to 2 times in case of a transient connection issue
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await axios.post(url, payload, {
+        httpsAgent: noKeepAliveAgent,
+        timeout: 8000,
+      });
+      console.log("Telegram notification sent.");
+      return;
+    } catch (err) {
+      console.error(`Telegram notification failed (attempt ${attempt}):`, err.response?.data || err.message);
+      if (attempt === 2) return;
+    }
   }
 }
 
