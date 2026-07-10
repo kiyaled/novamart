@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios");
 const Order = require("../models/Order");
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -26,21 +27,14 @@ async function sendTelegramNotification(order) {
 
   try {
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message,
-        parse_mode: "Markdown",
-      }),
+    await axios.post(url, {
+      chat_id: TELEGRAM_CHAT_ID,
+      text: message,
+      parse_mode: "Markdown",
     });
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("Telegram notification failed:", errText);
-    }
+    console.log("Telegram notification sent.");
   } catch (err) {
-    console.error("Telegram notification error:", err.message);
+    console.error("Telegram notification failed:", err.response?.data || err.message);
   }
 }
 
