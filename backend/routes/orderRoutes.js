@@ -7,7 +7,7 @@ router.post("/", async (req, res) => {
   try {
     const { customer, items, totalPrice } = req.body;
 
-    if (!customer?.name || !customer?.phone || !customer?.block || !customer?.houseNumber) {
+    if (!customer?.name || !customer?.phone || !customer?.block) {
       return res.status(400).json({ error: "All customer fields are required." });
     }
     if (!items || items.length === 0) {
