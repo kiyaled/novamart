@@ -37,19 +37,16 @@ async function sendTelegramNotification(order) {
     parse_mode: "Markdown",
   };
 
-  // Try up to 2 times in case of a transient connection issue
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-      await axios.post(url, payload, {
-        httpsAgent: noKeepAliveAgent,
-        timeout: 8000,
-      });
-      console.log("Telegram notification sent.");
-      return;
-    } catch (err) {
-      console.error(`Telegram notification failed (attempt ${attempt}):`, err.response?.data || err.message);
-      if (attempt === 2) return;
-    }
+  // Single attempt, short timeout — this runs inside the order request,
+  // so it must never risk pushing the whole request past Vercel's time limit.
+  try {
+    await axios.post(url, payload, {
+      httpsAgent: noKeepAliveAgent,
+      timeout: 4000,
+    });
+    console.log("Telegram notification sent.");
+  } catch (err) {
+    console.error("Telegram notification failed:", err.response?.data || err.message);
   }
 }
 
