@@ -68,8 +68,9 @@ router.post("/", async (req, res) => {
     const order = new Order({ customer, items, totalPrice });
     await order.save();
 
-    // Fire-and-forget — don't block or fail the order if Telegram is slow/down
-    sendTelegramNotification(order);
+    // Wait for the Telegram send to finish — Vercel can freeze the function
+    // right after res.json() runs, killing any unfinished background work.
+    await sendTelegramNotification(order);
 
     res.status(201).json({ success: true, orderId: order._id });
   } catch (err) {
